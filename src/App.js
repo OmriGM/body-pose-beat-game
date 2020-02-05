@@ -5,8 +5,8 @@ import logo from './logo.svg';
 import './App.css';
 
 const videoSize = {
-  width: '550px',
-  height: '412px'
+  width: 550,
+  height: 412
 }
 class App extends Component {
 
@@ -16,6 +16,10 @@ class App extends Component {
     this.videoRef = React.createRef()
     this.canvas = React.createRef() 
     this.ctx = null 
+    this.currentCirclePosition = {
+      x: 0,
+      y: 0
+    }
     this.state = {
       videoPos: {
         top: 0,
@@ -26,19 +30,16 @@ class App extends Component {
 
   async componentDidMount() {
     await this.setupCamera()
+    this.drawCircle()
     this.net = await this.loadPoseNet()
     await this.detectPoseInRealTime()
-    this.drawCircle()
-    setInterval(() => {
-      this.drawCircle()
-    }, 1500)
   }
 
   loadPoseNet = async () => posenet.load({
-    architecture: 'ResNet50',
+    architecture: 'MobileNetV1',
     outputStride: 16,
     inputResolution: { width: 550, height: 412 },
-    multiplier: 1
+    multiplier: 0.75
   });
 
   getRandomArbitrary = (min, max) => (Math.random() * (max - min) + min).toFixed()
@@ -60,7 +61,7 @@ class App extends Component {
   }
 
   detectPoseInRealTime = async () => {
-    const pose = this.videoRef.current
+    const { keypoints } = this.videoRef.current
       && await this.net.estimateSinglePose(
         this.videoRef.current, 
         {
@@ -68,25 +69,48 @@ class App extends Component {
           flipHorizontal: true
         }
       )
-    console.log(pose)
+    const wrists = this.getWristsFromKoints(keypoints)
+    this.hitTheTarget(wrists)
+    requestAnimationFrame(this.detectPoseInRealTime)
   }
 
-  drawCircle = () => {
-    const x = this.getRandomArbitrary(10, 540)
-    const y = this.getRandomArbitrary(10, 402)
+  hitTheTarget = wrists => {
+    const { x, y } = this.currentCirclePosition
+    const isWristHitCircle = wrists.some(({position}) => {
+      return (position.x <= +x + 20 && position.x >= +x - 20)
+        && (position.y < +y + 20 && position.y > +y - 20)
+    })
+    if(isWristHitCircle) {
+      this.destroyCircle()
+      this.drawCircle()
+    }
+  }
+
+  getWristsFromKoints = keypoints =>
+   keypoints.filter(({part}) => part === 'leftWrist' || part === 'rightWrist')
+
+  drawCircle = (x, y) => {
+    if(!x && !y) {
+      x = this.getRandomArbitrary(10, 525)
+      y = this.getRandomArbitrary(10, 390)
+    }
+    
     if(this.ctx) {      
       this.destroyCircle()
       this.ctx.beginPath()
-      this.ctx.arc(x, y, this.getRandomArbitrary(5, 20), 0, 2 * Math.PI)  
+      this.ctx.arc(x, y, this.getRandomArbitrary(15, 20), 0, 2 * Math.PI)  
       const colors = ['blue', 'green', 'lightgreen', 'red', 'cyan', 'yellow']
       const randomIndex = Math.floor(Math.random()*colors.length)
       this.ctx.fillStyle = colors[randomIndex]
       this.ctx.fill();
+      this.currentCirclePosition.x = x
+      this.currentCirclePosition.y = y
     }
   }
 
   destroyCircle = () => {
-    this.ctx.clearRect(0, 0, 550, 412)
+    const { x, y } = this.currentCirclePosition
+    this.ctx.clearRect(x - 100, y - 100, 200, 200)
   }
 
   render() {
@@ -97,16 +121,17 @@ class App extends Component {
         <video 
           ref={this.videoRef} 
           id={'stream-video'} 
+          playsInline 
           autoPlay
-          style={{width: videoSize.width, height: videoSize.height}}
+          muted
+          width={videoSize.width}
+          height={videoSize.height}
           className={'stream-video'} 
-        >
-        </video>
+        />
         <canvas ref={this.canvas} style={{left: left, top: top}} height={videoSize.height} width={videoSize.width}></canvas>
       </div>
     )
-  }
-  
+  } 
 }
 
 export default App;

@@ -40,3 +40,7 @@
 canvas {
   position: absolute;
 }
+
+video {
+   transform: scaleX(-1);
+}

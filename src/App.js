@@ -10,12 +10,12 @@ const videoSize = {
 }
 class App extends Component {
 
-  constructor(props){
+  constructor(props) {
     super(props)
-    this.stream = null 
+    this.stream = null
     this.videoRef = React.createRef()
-    this.canvas = React.createRef() 
-    this.ctx = null 
+    this.canvas = React.createRef()
+    this.ctx = null
     this.currentCirclePosition = {
       x: 0,
       y: 0
@@ -25,7 +25,7 @@ class App extends Component {
         top: 0,
         left: 0
       }
-    }  
+    }
   }
 
   async componentDidMount() {
@@ -51,19 +51,19 @@ class App extends Component {
         height: videoSize.height
       }
     })
-    if(this.videoRef) {
+    if (this.videoRef) {
       this.videoRef.current.srcObject = this.stream
       this.ctx = this.canvas.current.getContext('2d')
       const { top, left } = !!this.videoRef.current && this.videoRef.current.getBoundingClientRect()
 
-      this.setState({videoPos: { top, left }})
+      this.setState({ videoPos: { top, left } })
     }
   }
 
   detectPoseInRealTime = async () => {
     const { keypoints } = this.videoRef.current
       && await this.net.estimateSinglePose(
-        this.videoRef.current, 
+        this.videoRef.current,
         {
           decodingMethod: 'single-person',
           flipHorizontal: true
@@ -76,31 +76,31 @@ class App extends Component {
 
   hitTheTarget = wrists => {
     const { x, y } = this.currentCirclePosition
-    const isWristHitCircle = wrists.some(({position}) => {
+    const isWristHitCircle = wrists.some(({ position }) => {
       return (position.x <= +x + 20 && position.x >= +x - 20)
         && (position.y < +y + 20 && position.y > +y - 20)
     })
-    if(isWristHitCircle) {
+    if (isWristHitCircle) {
       this.destroyCircle()
       this.drawCircle()
     }
   }
 
   getWristsFromKoints = keypoints =>
-   keypoints.filter(({part}) => part === 'leftWrist' || part === 'rightWrist')
+    keypoints.filter(({ part }) => part === 'leftWrist' || part === 'rightWrist')
 
   drawCircle = (x, y) => {
-    if(!x && !y) {
+    if (!x && !y) {
       x = this.getRandomArbitrary(10, 525)
       y = this.getRandomArbitrary(10, 390)
     }
-    
-    if(this.ctx) {      
+
+    if (this.ctx) {
       this.destroyCircle()
       this.ctx.beginPath()
-      this.ctx.arc(x, y, this.getRandomArbitrary(15, 20), 0, 2 * Math.PI)  
+      this.ctx.arc(x, y, this.getRandomArbitrary(15, 20), 0, 2 * Math.PI)
       const colors = ['blue', 'green', 'lightgreen', 'red', 'cyan', 'yellow']
-      const randomIndex = Math.floor(Math.random()*colors.length)
+      const randomIndex = Math.floor(Math.random() * colors.length)
       this.ctx.fillStyle = colors[randomIndex]
       this.ctx.fill();
       this.currentCirclePosition.x = x
@@ -118,20 +118,25 @@ class App extends Component {
     return (
       <div className={'App'}>
         <h1>Best AI Game Ever</h1>
-        <video 
-          ref={this.videoRef} 
-          id={'stream-video'} 
-          playsInline 
+        <video
+          ref={this.videoRef}
+          id={'stream-video'}
+          playsInline
           autoPlay
           muted
           width={videoSize.width}
           height={videoSize.height}
-          className={'stream-video'} 
+          className={'stream-video'}
         />
-        <canvas ref={this.canvas} style={{left: left, top: top}} height={videoSize.height} width={videoSize.width}></canvas>
+        <canvas
+          ref={this.canvas}
+          style={{ left: left, top: top }}
+          height={videoSize.height}
+          width={videoSize.width}
+        />
       </div>
     )
-  } 
+  }
 }
 
 export default App;

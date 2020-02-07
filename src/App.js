@@ -8,6 +8,10 @@ const videoSize = {
   width: 550,
   height: 412
 }
+const WRISTS = {
+  RIGHT: 'rightWrist',
+  LEFT: 'leftWrist'
+}
 class App extends Component {
 
   constructor(props) {
@@ -16,6 +20,7 @@ class App extends Component {
     this.videoRef = React.createRef()
     this.canvas = React.createRef()
     this.ctx = null
+    this.currentWrist = WRISTS.RIGHT
     this.currentCirclePosition = {
       x: 0,
       y: 0
@@ -76,8 +81,10 @@ class App extends Component {
 
   hitTheTarget = wrists => {
     const { x, y } = this.currentCirclePosition
-    const isWristHitCircle = wrists.some(({ position }) => {
-      return (position.x <= +x + 20 && position.x >= +x - 20)
+    const isWristHitCircle = wrists.some(wrist => {
+      const { position, part } = wrist
+      return part === this.currentWrist
+        && (position.x <= +x + 20 && position.x >= +x - 20)
         && (position.y < +y + 20 && position.y > +y - 20)
     })
     if (isWristHitCircle) {
@@ -118,6 +125,9 @@ class App extends Component {
     return (
       <div className={'App'}>
         <h1>Best AI Game Ever</h1>
+        <div>
+          <h2>Hit with your {this.currentWrist} hand!</h2>
+        </div>
         <video
           ref={this.videoRef}
           id={'stream-video'}

@@ -1,13 +1,26 @@
 import React, { Component } from 'react';
 import * as posenet from '@tensorflow-models/posenet';
 
-import logo from './logo.svg';
-import './App.css';
+import './App.scss';
 
 const videoSize = {
   width: 550,
   height: 412
 }
+
+const wrists = [
+  {
+    key: 'rightWrist',
+    label: 'Right Wrist',
+    color: 'blue'
+  },
+  {
+    key: 'leftWrist',
+    label: 'Left Wrist',
+    color: 'red'
+  } 
+]
+
 class App extends Component {
 
   constructor(props) {
@@ -21,6 +34,8 @@ class App extends Component {
       y: 0
     }
     this.state = {
+      score: 0,
+      currentWrist: wrists[0],
       videoPos: {
         top: 0,
         left: 0
@@ -70,38 +85,69 @@ class App extends Component {
         }
       )
     const wrists = this.getWristsFromKoints(keypoints)
+    // this.colorWrists(wrists) //TODO: uncomment if you want to color wrists
     this.hitTheTarget(wrists)
     requestAnimationFrame(this.detectPoseInRealTime)
   }
 
+  colorWrists = wristss => {
+    wristss.map(({position, part}) => {
+      this.drawWrist(position.x, position.y, wrists.find(({key}) => key === part))
+    })
+  }
+
+  drawWrist = (x, y, wristType) => {
+    if (this.ctx) {
+      this.ctx.clearRect(x - 10, y - 10, 10, 10)
+      this.ctx.beginPath()
+      this.ctx.arc(x, y, 5, 0, 2 * Math.PI)
+      this.ctx.fillStyle = wristType.color
+      this.ctx.fill();
+    }
+  }
+
   hitTheTarget = wrists => {
     const { x, y } = this.currentCirclePosition
-    const isWristHitCircle = wrists.some(({ position }) => {
-      return (position.x <= +x + 20 && position.x >= +x - 20)
+    const isWristHitCircle = wrists.some(wrist => {
+      const { position, part } = wrist
+      
+      return part === this.state.currentWrist.key
+        && (position.x <= +x + 20 && position.x >= +x - 20)
         && (position.y < +y + 20 && position.y > +y - 20)
     })
     if (isWristHitCircle) {
+      this.updateScore()
       this.destroyCircle()
+      this.setRandomWrist()
       this.drawCircle()
     }
+  }
+
+  updateScore = () => {
+    this.setState(() => {
+      this.state.score = this.state.score + 1 
+    })
+  }
+  
+  setRandomWrist = () => {
+    const randomIndex = this.getRandomArbitrary(0, wrists.length - 1)
+    this.setState({ currentWrist: wrists[randomIndex] })
   }
 
   getWristsFromKoints = keypoints =>
     keypoints.filter(({ part }) => part === 'leftWrist' || part === 'rightWrist')
 
-  drawCircle = (x, y) => {
-    if (!x && !y) {
-      x = this.getRandomArbitrary(10, 525)
-      y = this.getRandomArbitrary(10, 390)
-    }
-
+  drawCircle = () => {
+    const x = this.state.currentWrist.key === 'rightWrist' 
+    ? this.getRandomArbitrary(490/2, 490)
+    : this.getRandomArbitrary(20, 490/2)
+    const y = this.getRandomArbitrary(20, 340)  
+   
     if (this.ctx) {
       this.destroyCircle()
       this.ctx.beginPath()
-      this.ctx.arc(x, y, this.getRandomArbitrary(15, 20), 0, 2 * Math.PI)
-      const colors = ['blue', 'green', 'lightgreen', 'red', 'cyan', 'yellow']
-      const randomIndex = Math.floor(Math.random() * colors.length)
-      this.ctx.fillStyle = colors[randomIndex]
+      this.ctx.arc(x, y, 20, 0, 2 * Math.PI)
+      this.ctx.fillStyle = this.state.currentWrist.color
       this.ctx.fill();
       this.currentCirclePosition.x = x
       this.currentCirclePosition.y = y
@@ -114,10 +160,18 @@ class App extends Component {
   }
 
   render() {
-    const { top, left } = this.state.videoPos
+    const { videoPos, currentWrist } = this.state
+    const { top, left } = videoPos
+    const { label, color } = currentWrist
+
     return (
       <div className={'App'}>
-        <h1>Best AI Game Ever</h1>
+        <h1>PoseNet Game</h1>
+        <div className={'subtitle'}>
+          <h2>Hit With Your {label}! </h2>
+          <span style={{ backgroundColor: color }}></span>
+        </div>
+        <h3 className={'score'}>Your Score { this.state.score }</h3>
         <video
           ref={this.videoRef}
           id={'stream-video'}

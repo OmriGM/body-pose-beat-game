@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import * as posenet from '@tensorflow-models/posenet';
 
+import { Social } from './components/Social'
 import './App.scss';
 
 const videoSize = {
@@ -20,6 +21,12 @@ const wrists = [
     color: 'red'
   } 
 ]
+
+//TODO:
+// 1. Add difficulty, the dots will be smaller or bigger
+// 2. Split to components
+// 3. add social media such as Github and Linkedin
+// 4. Consider Adding time for each game (e.g you got one minute to destroy as mush dots as you can
 
 class App extends Component {
 
@@ -166,7 +173,8 @@ class App extends Component {
 
     return (
       <div className={'App'}>
-        <h1>PoseNet Game</h1>
+        <h1>Touch the Dot</h1>
+        <Social/>
         <div className={'subtitle'}>
           <h2>Hit With Your {label}! </h2>
           <span style={{ backgroundColor: color }}></span>

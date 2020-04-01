@@ -25,7 +25,7 @@ const wrists = [
 ]
 const socialMedias = [
   {
-    url: 'https://github.com/OmriGM',
+    url: 'https://github.com/OmriGM/body-pose-beat-game',
     alt: 'github',
     icon: GithubIcon
   },

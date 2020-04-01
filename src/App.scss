@@ -4,12 +4,46 @@
   flex-direction: column;
   align-items: center;
 
-  h1 {
-    margin: 0;
+  .title {
+    margin-top: 20px;
+    display: flex;
+    width: 30%;
+    height: 50px;
+    justify-content: space-around;
+    align-items: center;
+
+    .social-media-container {
+      display: flex;
+      width: 70px;
+      justify-content: space-around;
+    }
+
+    h1 {
+      margin: 0;
+      font-weight: 500;
+    }
   }
 
   h3 {
-    color: rgb(82, 82, 82);
+    color: rgb(107, 107, 107);
+    font-weight: 300;
+  }
+}
+
+.subtitle {
+  display: flex;
+  align-items: center;
+
+
+  h2 {
+    font-weight: 300;
+  }
+
+  span {
+    width: 20px;
+    height: 20px;
+    border-radius:50%;
+    margin-left: 20px;
   }
 }
 
@@ -18,17 +52,5 @@ canvas {
 }
 
 video {
-   transform: scaleX(-1);
-}
-
-.subtitle {
-  display: flex;
-  align-items: center;
-
-  span {
-    width: 20px;
-    height: 20px;
-    border-radius:50%;
-    margin-left: 20px;
-  }
+  transform: scaleX(-1);
 }

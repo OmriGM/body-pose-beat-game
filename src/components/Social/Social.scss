@@ -1,0 +1,9 @@
+.social {
+    cursor: pointer;
+    height: 25px;
+    transition: transform 300ms ease-in-out;
+
+    &:hover {
+        transform: scale(1.2);
+    }
+}

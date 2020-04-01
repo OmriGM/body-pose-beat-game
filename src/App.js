@@ -96,7 +96,7 @@ class App extends Component {
   }
 
   detectPoseInRealTime = async () => {
-    const { keyPoints } = this.videoRef.current
+    const { keypoints } = this.videoRef.current
       && await this.net.estimateSinglePose(
         this.videoRef.current,
         {
@@ -104,7 +104,7 @@ class App extends Component {
           flipHorizontal: true
         }
       )
-    const wrists = this.getWristsFromJoints(keyPoints)
+    const wrists = this.getWristsFromJoints(keypoints)
     // this.colorWrists(wrists) //TODO: uncomment if you want to color wrists
     this.hitTheTarget(wrists)
     requestAnimationFrame(this.detectPoseInRealTime)
@@ -154,8 +154,8 @@ class App extends Component {
     this.setState({ currentWrist: wrists[randomIndex] })
   }
 
-  getWristsFromJoints = keyPoints =>
-    keyPoints.filter(({ part }) => part === 'leftWrist' || part === 'rightWrist')
+  getWristsFromJoints = keypoints =>
+    keypoints.filter(({ part }) => part === 'leftWrist' || part === 'rightWrist')
 
   drawCircle = () => {
     const x = this.state.currentWrist.key === 'rightWrist'
@@ -198,7 +198,9 @@ class App extends Component {
           <h2>Hit With Your {label}! </h2>
           <span style={{ backgroundColor: color }}/>
         </div>
-        <h3 className={'score'}>Your Score: { this.state.score }</h3>
+        <h3 className={'score-cotainer'}>
+          Your Score: <span className={'score'}> { this.state.score } </span>
+        </h3>
         <video
           ref={this.videoRef}
           id={'stream-video'}

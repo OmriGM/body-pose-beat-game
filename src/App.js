@@ -64,10 +64,16 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    await this.setupCamera()
-    this.drawCircle()
-    this.net = await this.loadPoseNet()
-    await this.detectPoseInRealTime()
+    try {
+      await this.setupCamera()
+      this.drawCircle()
+      this.net = await this.loadPoseNet()
+      await this.detectPoseInRealTime()
+    } catch {
+      alert('No User Media Found!')
+      return
+    }
+    
   }
 
   loadPoseNet = async () => posenet.load({
@@ -110,11 +116,10 @@ class App extends Component {
     requestAnimationFrame(this.detectPoseInRealTime)
   }
 
-  colorWrists = wrists => {
-    wrists.map(({position, part}) => {
+  colorWrists = wrists =>
+    wrists.map(({position, part}) =>
       this.drawWrist(position.x, position.y, wrists.find(({key}) => key === part))
-    })
-  }
+    )
 
   drawWrist = (x, y, wristType) => {
     if (this.ctx) {
@@ -144,9 +149,7 @@ class App extends Component {
   }
 
   updateScore = () => {
-    this.setState(() => {
-      this.state.score = this.state.score + 1
-    })
+    this.setState((prevState) => ({ score: prevState.score + 1 }))
   }
 
   setRandomWrist = () => {

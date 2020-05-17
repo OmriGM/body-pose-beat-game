@@ -35,11 +35,6 @@ const socialMedias = [
     icon: LinkedinIcon
   }
 ]
-//TODO:
-// 1. Add difficulty, the dots will be smaller or bigger
-// 2. Split to components
-// 3. add social media such as Github and Linkedin - V
-// 4. Consider Adding time for each game (e.g you got one minute to destroy as mush dots as you can
 
 class App extends Component {
 
@@ -111,7 +106,6 @@ class App extends Component {
         }
       )
     const wrists = this.getWristsFromJoints(keypoints)
-    // this.colorWrists(wrists) //TODO: uncomment if you want to color wrists
     this.hitTheTarget(wrists)
     requestAnimationFrame(this.detectPoseInRealTime)
   }

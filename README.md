@@ -9,7 +9,7 @@ More information about the PoseNet model can be found [here](https://medium.com/
 The purpose of the game is gaining as much points as possible by hitting the colored dots that will apear on the screen with the matching colored hand. (Make sure your webcam is active)
 
 ## Live Demo
-https://touch-the-dot.herokuapp.com/
+[Click Here](https://bit.ly/2VbsgmL)
 
 ## How to Run This Project
 ``` npm install ```

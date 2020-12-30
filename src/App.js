@@ -25,12 +25,12 @@ const wrists = [
 ]
 const socialMedias = [
   {
-    url: 'https://github.com/OmriGM/body-pose-beat-game',
+    url: 'http://bit.ly/37WeU4G',
     alt: 'github',
     icon: GithubIcon
   },
   {
-    url: 'https://il.linkedin.com/in/omri-grossman-58384511b',
+    url: 'https://bit.ly/2WV31Wd',
     alt: 'linkedin',
     icon: LinkedinIcon
   }

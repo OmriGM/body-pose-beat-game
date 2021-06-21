@@ -109,20 +109,6 @@ class App extends Component {
     requestAnimationFrame(this.detectPoseInRealTime)
   }
 
-  colorWrists = wrists =>
-    wrists.map(({position, part}) =>
-      this.drawWrist(position.x, position.y, wrists.find(({key}) => key === part))
-    )
-
-  drawWrist = (x, y, wristType) => {
-    if (this.ctx) {
-      this.ctx.clearRect(x - 10, y - 10, 10, 10)
-      this.ctx.beginPath()
-      this.ctx.arc(x, y, 5, 0, 2 * Math.PI)
-      this.ctx.fillStyle = wristType.color
-      this.ctx.fill();
-    }
-  }
 
   hitTheTarget = wrists => {
     const { x, y } = this.currentCirclePosition
@@ -133,6 +119,7 @@ class App extends Component {
         && (position.x <= +x + 20 && position.x >= +x - 20)
         && (position.y < +y + 20 && position.y > +y - 20)
     })
+
     if (isWristHitCircle) {
       this.updateScore()
       this.destroyCircle()

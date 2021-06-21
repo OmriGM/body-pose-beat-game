@@ -63,7 +63,6 @@ class App extends Component {
       await this.setupCamera()
       this.drawCircle()
       this.net = await this.loadPoseNet()
-      await this.detectPoseInRealTime()
     } catch {
       alert('No User Media Found!')
       return
@@ -207,6 +206,7 @@ class App extends Component {
           width={videoSize.width}
           height={videoSize.height}
           className={'stream-video'}
+          onLoadedData={this.detectPoseInRealTime}
         />
         <canvas
           ref={this.canvas}

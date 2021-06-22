@@ -3,6 +3,7 @@ import * as posenet from '@tensorflow-models/posenet';
 import { Social } from './components/Social/Social'
 import LinkedinIcon from './assets/icons/linkedin.png'
 import GithubIcon from './assets/icons/github.png'
+import * as poseDetection from '@tensorflow-models/pose-detection';
 
 import './App.scss';
 
@@ -13,12 +14,12 @@ const videoSize = {
 
 const wrists = [
   {
-    key: 'rightWrist',
+    key: 'right_wrist',
     label: 'Right Wrist',
     color: 'blue'
   },
   {
-    key: 'leftWrist',
+    key: 'left_wrist',
     label: 'Left Wrist',
     color: 'red'
   }
@@ -36,6 +37,13 @@ const socialMedias = [
   }
 ]
 
+const poseDetectors = Object.freeze({
+    MOVENET: 'movenet',
+    POSENET: 'postnet'
+})
+
+const activePostDetector = poseDetectors.POSENET
+
 class App extends Component {
 
   constructor(props) {
@@ -49,6 +57,7 @@ class App extends Component {
       y: 0
     }
     this.state = {
+      videoReady: false,
       score: 0,
       currentWrist: wrists[0],
       videoPos: {
@@ -62,20 +71,31 @@ class App extends Component {
     try {
       await this.setupCamera()
       this.drawCircle()
-      this.net = await this.loadPoseNet()
     } catch {
       alert('No User Media Found!')
       return
     }
-    
   }
 
-  loadPoseNet = async () => posenet.load({
-    architecture: 'MobileNetV1',
-    outputStride: 16,
-    inputResolution: { width: 550, height: 412 },
-    multiplier: 0.75
-  });
+  async componentDidUpdate() {
+      if(this.state.videoReady) {
+          if(!this.net) {
+              this.net = activePostDetector === poseDetectors.MOVENET
+                  ? await this.loadMoveNet()
+                  : await this.loadPoseNet()
+          }
+          this.detectPoseInRealTime()
+      }
+  }
+
+    loadMoveNet = async () => await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet)
+    loadPoseNet = async () => await poseDetection.createDetector(poseDetection.SupportedModels.PoseNet,
+        {
+              architecture: 'MobileNetV1',
+              outputStride: 16,
+              inputResolution: { width: 550, height: 412 },
+              multiplier: 0.75
+        })
 
   getRandomArbitrary = (min, max) => (Math.random() * (max - min) + min).toFixed()
 
@@ -96,31 +116,38 @@ class App extends Component {
   }
 
   detectPoseInRealTime = async () => {
-    const { keypoints } = this.videoRef.current
-      && await this.net.estimateSinglePose(
-        this.videoRef.current,
-        {
-          decodingMethod: 'single-person',
-          flipHorizontal: true
-        }
-      )
-    const wrists = this.getWristsFromJoints(keypoints)
-    this.hitTheTarget(wrists)
+      if(activePostDetector === poseDetectors.POSENET) {
+        const pose = await this.net.estimatePoses(this.videoRef.current)
+          console.log(pose);
+          const wrists = pose[0].keypoints.filter(({name}) => name === 'right_wrist' ||  name === 'left_wrist')
+        this.hitTheTarget(wrists)
+    } else {
+        const { keypoints } = await this.net.estimateSinglePose(
+            this.videoRef.current,
+            {
+              decodingMethod: 'single-person',
+              flipHorizontal: true
+            }
+          )
+        const wrists = this.getWristsFromJoints(keypoints)
+        this.hitTheTarget(wrists)
+    }
     requestAnimationFrame(this.detectPoseInRealTime)
   }
 
 
   hitTheTarget = wrists => {
     const { x, y } = this.currentCirclePosition
-    const isWristHitCircle = wrists.some(wrist => {
-      const { position, part } = wrist
 
-      return part === this.state.currentWrist.key
-        && (position.x <= +x + 20 && position.x >= +x - 20)
-        && (position.y < +y + 20 && position.y > +y - 20)
+    const didWristHitCircle = wrists.some(wrist => {
+      const { x: wristX, y: wristY , name } = wrist
+        console.log(wrist);
+        return name === this.state.currentWrist.key
+        && (wristX <= +x + 30 && wristX >= +x - 30)
+        && (wristY < +y + 30 && wristY > +y - 30)
     })
 
-    if (isWristHitCircle) {
+    if (didWristHitCircle) {
       this.updateScore()
       this.destroyCircle()
       this.setRandomWrist()
@@ -137,11 +164,10 @@ class App extends Component {
     this.setState({ currentWrist: wrists[randomIndex] })
   }
 
-  getWristsFromJoints = keypoints =>
-    keypoints.filter(({ part }) => part === 'leftWrist' || part === 'rightWrist')
+  getWristsFromJoints = keypoints => keypoints.filter(({ name }) => name=== 'left_wrist' || name === 'right_wrist')
 
   drawCircle = () => {
-    const x = this.state.currentWrist.key === 'rightWrist'
+    const x = this.state.currentWrist.key === 'right_wrist'
     ? this.getRandomArbitrary(490/2, 490)
     : this.getRandomArbitrary(20, 490/2)
     const y = this.getRandomArbitrary(20, 340)
@@ -193,7 +219,7 @@ class App extends Component {
           width={videoSize.width}
           height={videoSize.height}
           className={'stream-video'}
-          onLoadedData={this.detectPoseInRealTime}
+          onLoadedData={() => this.setState({videoReady : true})}
         />
         <canvas
           ref={this.canvas}
